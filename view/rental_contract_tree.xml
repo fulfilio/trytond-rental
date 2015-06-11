@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<tree string="Contracts">
+    <field name="reference"/>
+    <field name="contract_date"/>
+    <field name="party"/>
+    <field name="currency"/>
+    <field name="state"/>
+    <field name="description"/>
+</tree>

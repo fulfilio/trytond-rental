@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<form string="Rental Contract" col="6">
+    <label name="party"/>
+    <field name="party"/>
+    <label name="invoice_address"/>
+    <field name="invoice_address"/>
+    <label name="shipment_address"/>
+    <field name="shipment_address"/>
+    <label name="description"/>
+    <field name="description" colspan="3"/>
+    <label name="reference"/>
+    <field name="reference"/>
+    <notebook colspan="6">
+        <page string="Contract" id="sale">
+            <label name="contract_date"/>
+            <field name="contract_date"/>
+            <newline/>
+            <label name="company"/>
+            <field name="company"/>
+            <label name="currency"/>
+            <field name="currency"/>
+            <label name="start_date"/>
+            <field name="start_date"/>
+            <label name="end_date"/>
+            <field name="end_date"/>
+            <field name="lines" colspan="4"/>
+            <group col="2" colspan="2" id="states">
+                <label name="state"/>
+                <field name="state"/>
+            </group>
+            <group col="2" colspan="2" id="amount_buttons">
+                <group col="7" colspan="2" id="buttons">
+                    <button name="cancel" string="Cancel"
+                        icon="tryton-cancel"/>
+                    <button name="draft" string="Draft"/>
+                    <button name="quote" string="Quote"
+                        icon="tryton-go-next"/>
+                    <button name="confirm" string="Confirm"
+                        icon="tryton-go-next"/>
+                    <button name="process" string="Process"
+                        icon="tryton-go-next"/>
+                </group>
+            </group>
+        </page>
+        <page string="Invoices" id="invoices">
+        </page>
+    </notebook>
+</form>
