@@ -7,8 +7,14 @@
 """
 from trytond.pool import Pool
 
+from product import Template
+from rental import RentalContract, RentalContractLine
+
 
 def register():
     Pool.register(
+        Template,
+        RentalContract,
+        RentalContractLine,
         module='rental', type_='model'
     )
