@@ -5,6 +5,8 @@
     :copyright: (c) 2015 by Openlabs Technologies & Consulting (P) Limited
     :license: BSD, see LICENSE for more details.
 """
+from decimal import Decimal
+
 from trytond.model import Workflow, ModelSQL, ModelView, fields
 from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
@@ -78,13 +80,13 @@ class RentalContract(Workflow, ModelSQL, ModelView):
         depends=['party', 'state']
     )
 
-    start_date = fields.Date(
+    start_date = fields.DateTime(
         'Start Date', depends=['state'], states={
             'readonly': ~Eval('state').in_(['draft', 'quotation']),
             'required': ~Eval('state').in_(['draft', 'quotation', 'cancel']),
         }
     )
-    end_date = fields.Date(
+    end_date = fields.DateTime(
         'End Date', depends=['state'], states={
             'readonly': ~Eval('state').in_(['draft', 'quotation']),
             'required': ~Eval('state').in_(['draft', 'quotation', 'cancel']),
@@ -116,8 +118,7 @@ class RentalContract(Workflow, ModelSQL, ModelView):
         invoice_address = None
         shipment_address = None
         if self.party:
-            invoice_address = self.party.address_get(type='invoice')
-            shipment_address = self.party.address_get(type='delivery')
+            invoice_address = shipment_address = self.party.address_get()
 
         changes = {}
         if invoice_address:
@@ -195,7 +196,15 @@ class RentalContractLine(ModelSQL, ModelView):
             'required': Eval('type') == 'line',
         }, depends=['type']
     )
+    amount = fields.Function(fields.Numeric("Amount"), 'get_amount')
     description = fields.Text('Description', size=None, required=True)
+
+    @staticmethod
+    def default_type():
+        return 'line'
+
+    def get_amount(self, name):
+        return Decimal('0')
 
     @staticmethod
     def default_unit_digits():
@@ -206,3 +215,26 @@ class RentalContractLine(ModelSQL, ModelView):
         if self.unit:
             return self.unit.digits
         return 2
+
+    @fields.depends('product')
+    def on_change_with_product_uom_category(self, name=None):
+        if self.product:
+            return self.product.default_uom_category.id
+
+    @fields.depends('product', 'unit', 'quantity', 'description')
+    def on_change_product(self):
+        Product = Pool().get('product.product')
+
+        if not self.product:
+            return {}
+        res = {}
+
+        category = self.product.default_uom.category
+        if not self.unit or self.unit not in category.uoms:
+            res['unit'] = self.product.default_uom.id
+            res['unit.rec_name'] = self.product.default_uom.rec_name
+            res['unit_digits'] = self.product.default_uom.digits
+
+        res['description'] = Product(self.product.id).rec_name
+        res['unit_price'] = self.product.list_price
+        return res

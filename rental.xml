@@ -42,5 +42,16 @@
         </record>
         <menuitem parent="menu_rental" action="act_rental_contract_form" id="menu_rental_contract_form" sequence="10"/>
 
+        <record model="ir.ui.view" id="rental_contract_line_view_form">
+            <field name="model">rental.contract.line</field>
+            <field name="type">form</field>
+            <field name="name">rental_contract_line_form</field>
+        </record>
+        <record model="ir.ui.view" id="rental_contract_line_view_tree">
+            <field name="model">rental.contract.line</field>
+            <field name="type">tree</field>
+            <field name="name">rental_contract_line_tree</field>
+        </record>
+
     </data>
 </tryton>
