@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<form string="Configuration">
+    <label name="contract_sequence"/>
+    <field name="contract_sequence"/>
+    <label name="subscription_invoice_payment_term"/>
+    <field name="subscription_invoice_payment_term"/>
+    <label name="subscription_journal"/>
+    <field name="subscription_journal"/>
+</form>

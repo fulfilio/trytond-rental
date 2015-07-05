@@ -4,5 +4,21 @@
         <label name="rentable"/>
         <field name="rentable"/>
     </xpath>
+    <xpath expr="/form/notebook" position="inside">
+        <page string="Rental" id="rental">
+            <group string="Rates" colspan="2" col="2">
+                <label string="Hourly"/>
+                <field name="rent_hourly"/>
+                <label string="Daily"/>
+                <field name="rent_daily"/>
+                <label string="Weekly"/>
+                <field name="rent_weekly"/>
+                <label string="Monthly"/>
+                <field name="rent_monthly"/>
+                <label string="Yearly"/>
+                <field name="rent_yearly"/>
+            </group>
+        </page>
+    </xpath>
 </data>
 

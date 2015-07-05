@@ -12,17 +12,14 @@
     <field name="reference"/>
     <notebook colspan="6">
         <page string="Contract" id="sale">
-            <label name="contract_date"/>
-            <field name="contract_date"/>
-            <newline/>
-            <label name="company"/>
-            <field name="company"/>
-            <label name="currency"/>
-            <field name="currency"/>
             <label name="start_date"/>
             <field name="start_date"/>
             <label name="end_date"/>
             <field name="end_date"/>
+            <label name="billing_method"/>
+            <field name="billing_method"/>
+            <label name="duration"/>
+            <field name="duration"/>
             <field name="lines" colspan="4"/>
             <group col="2" colspan="2" id="states">
                 <label name="state"/>
@@ -35,14 +32,22 @@
                     <button name="draft" string="Draft"/>
                     <button name="quote" string="Quote"
                         icon="tryton-go-next"/>
-                    <button name="confirm" string="Confirm"
+                    <button name="reserve" string="Reserve"
                         icon="tryton-go-next"/>
-                    <button name="process" string="Process"
+                    <button name="active" string="Active"
                         icon="tryton-go-next"/>
+                    <button name="close" string="Close"/>
                 </group>
             </group>
         </page>
+        <page string="Other Info" id="other-info">
+            <label name="company"/>
+            <field name="company"/>
+            <label name="currency"/>
+            <field name="currency"/>
+        </page>
         <page string="Invoices" id="invoices">
+            <field name="invoices"/>
         </page>
     </notebook>
 </form>

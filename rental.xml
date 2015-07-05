@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <tryton>
     <data>
-        <menuitem name="Rentals" id="menu_rental" sequence="5"/>
+        <menuitem name="Rental" id="menu_rental" sequence="5"/>
 
         <record model="ir.ui.view" id="rental_contract_view_form">
             <field name="model">rental.contract</field>
@@ -38,6 +38,24 @@
             <field name="name">Quotation</field>
             <field name="sequence" eval="20"/>
             <field name="domain">[('state', '=', 'quotation')]</field>
+            <field name="act_window" ref="act_rental_contract_form"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_rental_contract_form_domain_reservation">
+            <field name="name">Reservation</field>
+            <field name="sequence" eval="20"/>
+            <field name="domain">[('state', '=', 'reservation')]</field>
+            <field name="act_window" ref="act_rental_contract_form"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_rental_contract_form_domain_active">
+            <field name="name">Active</field>
+            <field name="sequence" eval="20"/>
+            <field name="domain">[('state', '=', 'active')]</field>
+            <field name="act_window" ref="act_rental_contract_form"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_rental_contract_form_domain_all">
+            <field name="name">All</field>
+            <field name="sequence" eval="20"/>
+            <field name="domain"></field>
             <field name="act_window" ref="act_rental_contract_form"/>
         </record>
         <menuitem parent="menu_rental" action="act_rental_contract_form" id="menu_rental_contract_form" sequence="10"/>

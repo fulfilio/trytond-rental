@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<tryton>
+    <data>
+        <record model="ir.ui.view" id="rental_configuration_view_form">
+            <field name="model">rental.configuration</field>
+            <field name="type">form</field>
+            <field name="name">rental_configuration_form</field>
+        </record>
+        <record model="ir.action.act_window" id="act_rental_configuration_form">
+            <field name="name">Configuration</field>
+            <field name="res_model">rental.configuration</field>
+            <field name="search_value"></field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_rental_configuration_form_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="rental_configuration_view_form"/>
+            <field name="act_window" ref="act_rental_configuration_form"/>
+        </record>
+        <menuitem parent="menu_rental" action="act_rental_configuration_form"
+                id="menu_rental_configuration_form" icon="tryton-preferences" sequence="1"/>
+
+        <record model="ir.sequence.type" id="sequence_type_rental_contract">
+            <field name="name">Rental Contract</field>
+            <field name="code">rental.contract</field>
+        </record>
+        <record model="ir.sequence.type-res.group" id="sequence_type_contract_group_admin">
+            <field name="sequence_type" ref="sequence_type_rental_contract"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_rental_contract">
+            <field name="name">Rental Contract</field>
+            <field name="code">rental.contract</field>
+        </record>
+
+        <record model="ir.property" id="property_rental_contract_sequence">
+            <field name="field"
+                search="[('model.model', '=', 'rental.configuration'), ('name', '=', 'contract_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(ref('sequence_rental_contract'))"/>
+        </record>
+    </data>
+</tryton>

@@ -85,7 +85,7 @@ requires = []
 MODULE2PREFIX = {}
 
 MODULE = "rental"
-PREFIX = "openlabs"
+PREFIX = "fio"
 for dep in info.get('depends', []):
     if not re.match(r'(ir|res|webdav)(\W|$)', dep):
         requires.append(
@@ -104,9 +104,9 @@ setup(
     name='%s_%s' % (PREFIX, MODULE),
     version=info.get('version', '0.0.1'),
     description="Tryton Rental Module",
-    author="Openlabs Technologies and Consulting (P) Ltd.",
-    author_email='info@openlabs.co.in',
-    url='http://www.openlabs.co.in/',
+    author="Fulfil.IO Inc.",
+    author_email='support@fulfil.io',
+    url='http://www.fulfil.io/',
     package_dir={'trytond.modules.%s' % MODULE: '.'},
     packages=[
         'trytond.modules.%s' % MODULE,
@@ -122,7 +122,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Environment :: Plugins',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: BSD',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
@@ -130,7 +130,7 @@ setup(
         'Topic :: Office/Business',
     ],
     long_description=open('README.rst').read(),
-    license='GPL-3',
+    license='BSD',
     install_requires=requires,
     zip_safe=False,
     entry_points="""

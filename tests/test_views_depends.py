@@ -2,8 +2,8 @@
 """
     tests/test_views_depends.py
 
-    :copyright: (C) 2015 by Openlabs Technologies & Consulting (P) Limited
-    :license: BSD, see LICENSE for more details.
+    :copyright: (C) 2015 by Fulfil.IO Inc.
+    :license: see LICENSE.
 """
 import sys
 import os
