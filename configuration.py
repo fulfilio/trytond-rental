@@ -14,24 +14,22 @@ class Configuration(ModelSingleton, ModelSQL, ModelView):
     'Rental Configuration'
     __name__ = 'rental.configuration'
 
-    contract_sequence = fields.Property(
-        fields.Many2One(
-            'ir.sequence', 'Contract Sequence',
-            help='Sequence for rental contracts',
-            required=True
-        )
+    contract_sequence = fields.Many2One(
+        'ir.sequence', 'Contract Sequence',
+        help='Sequence for rental contracts',
+        required=True
     )
-    subscription_invoice_payment_term = fields.Property(
-        fields.Many2One(
-            'account.invoice.payment_term',
-            'Subscription Invoice Payment Term',
-            required=True,
-            help="This payment term will be used if customer does not have one."
-        )
+    subscription_invoice_payment_term = fields.Many2One(
+        'account.invoice.payment_term',
+        'Subscription Invoice Payment Term',
+        required=True,
+        help="This payment term will be used if customer does not have one."
     )
-    subscription_journal = fields.Property(
-        fields.Many2One(
-            'account.journal', 'Subscription Journal',
-            required=True,
-        )
+    subscription_journal = fields.Many2One(
+        'account.journal', 'Subscription Journal',
+        required=True,
+    )
+    rent_location = fields.Many2One(
+        'stock.location', 'Rent Location', domain=[('type', '=', 'customer')],
+        required=True,
     )

@@ -11,6 +11,7 @@ from product import Template, Product
 from rental import RentalContract, RentalContractLine
 from configuration import Configuration
 from invoice import InvoiceLine
+from stock import Move
 
 
 def register():
@@ -21,5 +22,6 @@ def register():
         RentalContract,
         RentalContractLine,
         InvoiceLine,
+        Move,
         module='rental', type_='model'
     )

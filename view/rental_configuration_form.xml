@@ -6,4 +6,6 @@
     <field name="subscription_invoice_payment_term"/>
     <label name="subscription_journal"/>
     <field name="subscription_journal"/>
+    <label name="rent_location"/>
+    <field name="rent_location"/>
 </form>

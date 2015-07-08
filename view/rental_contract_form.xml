@@ -45,9 +45,16 @@
             <field name="company"/>
             <label name="currency"/>
             <field name="currency"/>
+            <label name="warehouse"/>
+            <field name="warehouse"/>
         </page>
         <page string="Invoices" id="invoices">
             <field name="invoices"/>
+        </page>
+        <page string="Shipments" id="shipments">
+            <field name="moves" colspan="4"/>
+            <field name="shipments" colspan="4"/>
+            <field name="shipment_returns" colspan="4"/>
         </page>
     </notebook>
 </form>

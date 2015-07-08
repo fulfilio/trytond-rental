@@ -6,7 +6,8 @@
     :license: see LICENSE.
 """
 from decimal import Decimal
-from itertools import chain
+from itertools import groupby, chain
+from functools import partial
 
 from trytond.model import Workflow, ModelSQL, ModelView, fields
 from trytond.pyson import Eval, If, Bool
@@ -76,6 +77,12 @@ class RentalContract(Workflow, ModelSQL, ModelView):
         depends=['party', 'state']
     )
 
+    warehouse = fields.Many2One(
+        'stock.location', 'Warehouse',
+        domain=[('type', '=', 'warehouse')], states={
+            'readonly': Eval('state') != 'draft',
+        }, depends=['state'])
+
     start_date = fields.DateTime(
         'Start Date', depends=['state'], states={
             'readonly': ~Eval('state').in_(['draft', 'quotation']),
@@ -115,6 +122,52 @@ class RentalContract(Workflow, ModelSQL, ModelView):
         fields.One2Many('stock.shipment.out', None, 'Shipments'),
         getter='get_shipments', searcher='search_shipments',
     )
+    shipment_returns = fields.Function(
+        fields.One2Many('stock.shipment.out.return', None, 'Shipment Returns'),
+        'get_shipment_returns', searcher='search_shipment_returns'
+    )
+    moves = fields.Function(
+        fields.One2Many('stock.move', None, 'Moves'),
+        'get_moves'
+    )
+
+    def get_moves(self, name):
+        return [m.id for l in self.lines for m in l.moves]
+
+    def search_shipments_returns(model_name):
+        def method(self, name, clause):
+            return [
+                ('lines.moves.shipment.id',) + tuple(clause[1:])
+                + (model_name,)
+            ]
+        return classmethod(method)
+
+    search_shipments = search_shipments_returns('stock.shipment.out')
+    search_shipment_returns = search_shipments_returns(
+        'stock.shipment.out.return'
+    )
+
+    def get_shipments_returns(model_name):
+        "Computes the returns or shipments"
+        def method(self, name):
+            Model = Pool().get(model_name)
+            shipments = set()
+            for line in self.lines:
+                for move in line.moves:
+                    if isinstance(move.shipment, Model):
+                        shipments.add(move.shipment.id)
+            return list(shipments)
+        return method
+
+    get_shipments = get_shipments_returns('stock.shipment.out')
+    get_shipment_returns = get_shipments_returns('stock.shipment.out.return')
+
+    @classmethod
+    def default_warehouse(cls):
+        Location = Pool().get('stock.location')
+        locations = Location.search(cls.warehouse.domain)
+        if len(locations) == 1:
+            return locations[0].id
 
     @staticmethod
     def default_billing_type():
@@ -185,16 +238,6 @@ class RentalContract(Workflow, ModelSQL, ModelView):
                 },
         })
 
-    def get_shipments(self, name):
-        shipments = set()
-        for line in self.lines:
-            for move in line.moves:
-                shipments.add(move.shipment.id)
-        return list(shipments)
-
-    def search_shipments(self, name, clause):
-        return [('lines.moves.shipment.id', ) + tuple(clause[1:])]
-
     def get_invoices(self, name):
         invoices = set()
         for line in self.lines:
@@ -251,7 +294,12 @@ class RentalContract(Workflow, ModelSQL, ModelView):
     @ModelView.button
     @Workflow.transition('cancel')
     def cancel(cls, contracts):
-        pass
+        ShipmentOut = Pool().get('stock.shipment.out')
+        ShipmentOutReturn = Pool().get('stock.shipment.out.return')
+
+        for contract in contracts:
+            ShipmentOut.cancel(contract.shipments)
+            ShipmentOutReturn.cancel(contract.shipment_returns)
 
     @classmethod
     @ModelView.button
@@ -283,18 +331,29 @@ class RentalContract(Workflow, ModelSQL, ModelView):
     def reserve(cls, contracts):
         for contract in contracts:
             contract.create_invoice('out_invoice')
+            contract.create_shipment('out')
+            contract.create_shipment('return')
 
     @classmethod
     @ModelView.button
     @Workflow.transition('active')
     def active(cls, contracts):
-        pass
+        ShipmentOut = Pool().get('stock.shipment.out')
+
+        for contract in contracts:
+            ShipmentOut.assign(contract.shipments)
+            ShipmentOut.pack(contract.shipments)
+            ShipmentOut.done(contract.shipments)
 
     @classmethod
     @ModelView.button
     @Workflow.transition('close')
     def close(cls, contracts):
-        pass
+        ShipmentOutReturn = Pool().get('stock.shipment.out.return')
+
+        for contract in contracts:
+            ShipmentOutReturn.receive(contract.shipment_returns)
+            ShipmentOutReturn.done(contract.shipment_returns)
 
     def _get_invoice_line_rent_line(self, invoice_type):
         '''
@@ -337,6 +396,67 @@ class RentalContract(Workflow, ModelSQL, ModelView):
         invoice.save()
 
         return invoice
+
+    def _group_shipment_key(self, moves, move):
+        '''
+        The key to group moves by shipments
+        move is a tuple of line id and a move
+        '''
+        ContractLine = Pool().get('rental.contract.line')
+
+        line_id, move = move
+        line = ContractLine(line_id)
+
+        planned_date = max(m.planned_date for m in moves)
+        return (
+            ('planned_date', planned_date),
+            ('warehouse', line.rental_contract.warehouse.id),
+        )
+
+    def _get_shipment_rent(self, Shipment, key):
+        values = {
+            'customer': self.party.id,
+            'delivery_address': self.shipment_address.id,
+            'company': self.company.id,
+            }
+        values.update(dict(key))
+        return Shipment(**values)
+
+    def create_shipment(self, shipment_type):
+        moves = self._get_move_rent_line(shipment_type)
+
+        if not moves:
+            return
+        if shipment_type == 'out':
+            keyfunc = partial(self._group_shipment_key, moves.values())
+            Shipment = Pool().get('stock.shipment.out')
+        elif shipment_type == 'return':
+            keyfunc = partial(self._group_shipment_key, moves.values())
+            Shipment = Pool().get('stock.shipment.out.return')
+
+        moves = moves.items()
+        moves = sorted(moves, key=keyfunc)
+
+        shipments = []
+        for key, grouped_moves in groupby(moves, key=keyfunc):
+            shipment = self._get_shipment_rent(Shipment, key)
+            shipment.moves = (
+                list(getattr(shipment, 'moves', []))
+                + [x[1] for x in grouped_moves]
+            )
+            shipment.save()
+            shipments.append(shipment)
+        if shipment_type == 'out':
+            Shipment.wait(shipments)
+        return shipments
+
+    def _get_move_rent_line(self, shipment_type):
+        res = {}
+        for line in self.lines:
+            val = line.get_move(shipment_type)
+            if val:
+                res[line.id] = val
+        return res
 
 
 class RentalContractLine(ModelSQL, ModelView):
@@ -444,7 +564,8 @@ class RentalContractLine(ModelSQL, ModelView):
             if getattr(self.rental_contract, 'billing_method', None):
                 context['billing_method'] = self.rental_contract.billing_method
             if getattr(self.rental_contract, 'start_date', None):
-                context['contract_start_date'] = self.rental_contract.start_date
+                context['contract_start_date'] = \
+                    self.rental_contract.start_date.date()
         if self.unit:
             context['uom'] = self.unit.id
         else:
@@ -534,3 +655,38 @@ class RentalContractLine(ModelSQL, ModelView):
         invoice_line.invoice_type = invoice_type
         invoice_line.account = self.product.account_revenue_used
         return [invoice_line]
+
+    def get_move(self, shipment_type):
+        '''
+        Return moves for the rent line according to shipment_type
+        '''
+        Move = Pool().get('stock.move')
+        Configuration = Pool().get('rental.configuration')
+
+        if self.type != 'line':
+            return
+        if not self.product or not self.quantity:
+            return
+
+        if self.product.type == 'service':
+            return
+
+        if shipment_type == 'out':
+            planned_date = self.rental_contract.start_date.date()
+        elif shipment_type == 'return':
+            planned_date = self.rental_contract.end_date.date()
+
+        move = Move()
+        move.quantity = self.quantity
+        move.uom = self.unit
+        move.product = self.product
+        move.from_location = self.rental_contract.warehouse.output_location.id
+        move.to_location = Configuration(1).rent_location.id
+        move.state = 'draft'
+        move.company = self.rental_contract.company.id
+        move.unit_price = self.unit_price
+        move.currency = self.rental_contract.currency
+        move.planned_date = planned_date
+        move.invoice_lines = self.invoice_lines
+        move.origin = self
+        return move
