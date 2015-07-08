@@ -6,19 +6,18 @@
     </xpath>
     <xpath expr="/form/notebook" position="inside">
         <page string="Rental" id="rental">
-            <group string="Rates" colspan="2" col="2">
-                <label string="Hourly"/>
+            <group id="rates" string="Rates" colspan="2" col="2">
+                <label name="rent_hourly" string="Hourly"/>
                 <field name="rent_hourly"/>
-                <label string="Daily"/>
+                <label name="rent_daily" string="Daily"/>
                 <field name="rent_daily"/>
-                <label string="Weekly"/>
+                <label name="rent_weekly" string="Weekly"/>
                 <field name="rent_weekly"/>
-                <label string="Monthly"/>
+                <label name="rent_monthly" string="Monthly"/>
                 <field name="rent_monthly"/>
-                <label string="Yearly"/>
+                <label name="rent_yearly" string="Yearly"/>
                 <field name="rent_yearly"/>
             </group>
         </page>
     </xpath>
 </data>
-
